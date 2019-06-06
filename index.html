@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Canvas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+</head>
+<body>
+<canvas id="draw" width="800" height="800"></canvas>
+<div id="paleta">
+  <h4>Kolory:</h4>
+  <input type="range" id="colorSlider" min="0" max="359" value="0" step="1">
+  <div class="row">
+    <label for="changeColor">Tryb RainbowDash:</label>
+    <input id="changeColor" type="checkbox">
+  </div>
+  <h4>Pędzle:</h4>
+  <input type="range" id="widthSlider" min="1" max="50" value="25" step="1">
+  <div class="row">
+    <label for="changeWidth">Zmieniaj szerokość:</label>
+    <input id="changeWidth" type="checkbox">
+  </div>
+  <div id="sample"></div>
+</div>
+<script>
+const paleta = document.querySelector("#paleta")
+const rainbow = document.querySelector("#rainbow")
+const widthSlider = document.querySelector("#widthSlider")
+const colorSlider = document.querySelector("#colorSlider")
+const sample = document.querySelector("#sample")
+const changeWidth = document.querySelector("#changeWidth")
+const changeColor = document.querySelector("#changeColor")
+
+const socket = io.connect('http://vps694867.ovh.net:8008/');
+
+// old code
+const canvas = document.querySelector('#draw');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+ctx.strokeStyle = '#BADA55';
+ctx.lineJoin = 'round';
+ctx.lineCap = 'round';
+ctx.lineWidth = 100;
+// ctx.globalCompositeOperation = 'multiply';
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let hue = 0;
+let direction = true;
+
+function draw(e) {
+  if (!isDrawing) return; // stop the fn from running when they are not moused down
+  console.log(e);
+  ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+  ctx.beginPath();
+  // start from
+  ctx.moveTo(lastX, lastY);
+  // go to
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+  [lastX, lastY] = [e.offsetX, e.offsetY];
+
+  hue++;
+  if (hue >= 360) {
+    hue = 0;
+  }
+  if (ctx.lineWidth >= 100 || ctx.lineWidth <= 1) {
+    direction = !direction;
+  }
+
+  if(direction) {
+    ctx.lineWidth++;
+  } else {
+    ctx.lineWidth--;
+  }
+
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  isDrawing = true;
+  [lastX, lastY] = [e.offsetX, e.offsetY];
+});
+
+
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', () => isDrawing = false);
+canvas.addEventListener('mouseout', () => isDrawing = false);
+
+</script>
+
+<style>
+  html, body {
+    margin: 0;
+  }
+  #paleta{
+    position: fixed;
+    top:0;
+    left:0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  #sample{
+    border-radius: 50%;
+    margin-top: 10px;
+  }
+</style>
+
+</body>
+</html>
